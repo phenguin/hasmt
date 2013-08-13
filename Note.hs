@@ -1,6 +1,6 @@
 module Note (
 Note(C,B,D,E,F,G,A),
-(~=), getPitchClass,
+(~=), HavingPitchClass(..), PitchClass, 
 raise, sharpen, lower, flatten, EnharmonicEquiv(..),
 pcToNote, pcToNoteWithBase, nextNat, prevNat
 ) where
@@ -10,7 +10,6 @@ import Control.Monad
 import Data.Function (on)
 
 type PitchClass = Int
-type Octave = Int
 
 data Accidental = Flat | Natural | Sharp deriving (Show, Read, Eq, Ord, Enum)
 
