@@ -1,15 +1,23 @@
 module Interval (
 Interval (Unison, Second, Third, Fourth, Fifth, Sixth, Seventh),
-semitones
+semitones, sharp, flat, noteAbove, noteBelow
 ) where
 
 import Note
 import Util
+import Data.Function (on)
 
+-- TODO: Implement a custom Ord and Eq instance for intervals
 data Interval = Unison | Second | Third | 
     Fourth | Fifth | Sixth | 
     Seventh | Flattened Interval | 
-    Sharpened Interval deriving (Eq)
+    Sharpened Interval 
+
+instance Eq Interval where
+    i == i' = semitones i == semitones i'
+
+instance Ord Interval where
+    compare = compare `on` semitones
 
 instance Show Interval where
     show Unison = "1"
