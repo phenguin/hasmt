@@ -38,7 +38,7 @@ instance HavingPitchClass Note where
 pcToNote :: PitchClass -> Note
 pcToNote n = case n `mod` 12 of
                   0 -> A
-                  1 -> flatten A
+                  1 -> flatten B
                   2 -> B
                   3 -> C
                   4 -> flatten D
