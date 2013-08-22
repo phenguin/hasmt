@@ -1,6 +1,6 @@
 module Interval (
 Interval (Unison, Second, Third, Fourth, Fifth, Sixth, Seventh),
-semitones, sharp, flat, noteAbove, noteBelow
+semitones, sharp, flat, noteAbove
 ) where
 
 import Note
@@ -86,12 +86,6 @@ noteAbove :: Note -> Interval -> Note
 noteAbove note interval = pcToNoteWithBase newPitchClass base
     where base = compose (take (scaleSteps interval) $ repeat nextNat) note
           newPitchClass = getPitchClass note + semitones interval
-          
-
-noteBelow :: Note -> Interval -> Note
-noteBelow note interval = pcToNoteWithBase newPitchClass base
-    where base = compose (take (scaleSteps interval) $ repeat nextNat) note
-          newPitchClass = getPitchClass note - semitones interval
           
 
 -- Aliases
