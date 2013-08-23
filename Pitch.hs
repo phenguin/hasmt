@@ -1,5 +1,5 @@
 module Pitch (
-Pitch(..), moveSemitones, Octave
+Pitch(..), moveSemitones, Octave, getPitchNote
 ) where
 
 import Note
@@ -16,4 +16,7 @@ moveSemitones :: Int -> Pitch -> Pitch
 moveSemitones i (Pitch oct pc) = Pitch oct' pc'
     where pc' = (pc + i) `mod` 12
           oct' = oct + ((pc + i) `div` 12)
+
+getPitchNote :: Pitch -> Note
+getPitchNote = pcToNote . getPitchClass
 
