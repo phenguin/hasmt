@@ -6,6 +6,8 @@ import Note
 import Pitch
 import Chord
 
+import Control.Monad
+
 
 type Tuning = [Pitch]
 
@@ -21,6 +23,7 @@ standardTuning = [Pitch 0 7, -- Low E
 
 type FretNum = Int
 type StringNum = Int
+type Voicing = [(Interval, Fret)]
 
 data Fret = Fret { stringNum :: StringNum, fretNum :: FretNum } deriving (Show, Eq, Ord, Read)
 data FretRange = FretRange { lowerBound :: FretNum, upperBound :: FretNum } deriving
@@ -69,8 +72,18 @@ fretsForChordInRange tuning note chord fr = filter f $ fretsForChord tuning note
 inFretRange :: FretRange -> Fret -> Bool
 inFretRange (FretRange low high) (Fret _ fretNum) = low <= fretNum && fretNum <= high
 
--- buildVoicing' :: Interval -> StringNum -> [(Interval, Fret)] -> [Fret]
--- buildVoicing' interval stringNum xs = head $ filterg $ filter f xs
---     where f (interval, (Fret stringNum _)) = interval 
+isOnString :: StringNum -> Fret -> Bool
+isOnString sn (Fret sn' _) = sn == sn'
+
+buildVoicing' :: [(Interval, Fret)] -> StringNum -> [(Interval, Fret)]
+buildVoicing' chordFrets sn = filter f chordFrets
+    where f (_, fret) = isOnString sn fret
+
+voicingsInRange :: Tuning -> Chord -> Note -> FretRange -> [Voicing]
+voicingsInRange tuning chord note fr = mapM (buildVoicing' chordFrets) (strings tuning)
+    where chordFrets = fretsForChordInRange tuning note chord fr
+
+rootInterval :: Voicing -> Interval
+
 
 
