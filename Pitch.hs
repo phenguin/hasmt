@@ -1,8 +1,8 @@
-module Pitch (
+module Hasmt.Pitch (
 Pitch(..), moveSemitones, Octave, getPitchNote
 ) where
 
-import Note
+import Hasmt.Note
 
 type Octave = Int
 

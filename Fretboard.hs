@@ -1,10 +1,10 @@
-module Fretboard where
+module Hasmt.Fretboard where
 
-import Util
-import Interval
-import Note
-import Pitch
-import Chord
+import Hasmt.Util
+import Hasmt.Interval
+import Hasmt.Note
+import Hasmt.Pitch
+import Hasmt.Chord
 
 import Control.Monad
 
@@ -82,8 +82,4 @@ buildVoicing' chordFrets sn = filter f chordFrets
 voicingsInRange :: Tuning -> Chord -> Note -> FretRange -> [Voicing]
 voicingsInRange tuning chord note fr = mapM (buildVoicing' chordFrets) (strings tuning)
     where chordFrets = fretsForChordInRange tuning note chord fr
-
-rootInterval :: Voicing -> Interval
-
-
 

@@ -1,4 +1,4 @@
-module Note (
+module Hasmt.Note (
 Note(C,B,D,E,F,G,A),
 (~=), HavingPitchClass(..), PitchClass, 
 raise, sharpen, lower, flatten, EnharmonicEquiv(..),

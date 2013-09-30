@@ -1,10 +1,10 @@
-module Interval (
+module Hasmt.Interval (
 Interval (Unison, Second, Third, Fourth, Fifth, Sixth, Seventh),
 semitones, sharp, flat, noteAbove
 ) where
 
-import Note
-import Util
+import Hasmt.Note
+import Hasmt.Util
 import Data.Function (on)
 
 -- TODO: Implement a custom Ord and Eq instance for intervals

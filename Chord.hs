@@ -1,7 +1,7 @@
-module Chord where
+module Hasmt.Chord where
 
-import Interval
-import Note
+import Hasmt.Interval
+import Hasmt.Note
 import qualified Data.Set as S
 import Data.List
 

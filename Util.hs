@@ -1,4 +1,4 @@
-module Util where
+module Hasmt.Util where
 
 compose :: [a -> a] -> a -> a
 compose = foldr (.) id
