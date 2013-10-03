@@ -15,6 +15,9 @@ instance Show Chord where
 chordFromList :: [Interval] -> Chord
 chordFromList = Chord . S.fromList
 
+chordIntervalList :: Chord -> [Interval]
+chordIntervalList (Chord iset) = S.toList iset
+
 -- Specfic chord spellings
 spellChordForRoot :: Note -> Chord -> [(Interval, Note)]
 spellChordForRoot note chord = map f $ S.toList (intervals chord)

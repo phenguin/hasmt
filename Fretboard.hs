@@ -7,8 +7,9 @@ import Hasmt.Pitch
 import Hasmt.Chord
 
 import Data.Function (on)
-import Data.List (minimumBy)
+import Data.List (minimumBy, maximumBy, sortBy, nub, sort, maximum)
 import Control.Monad
+import Data.Set as S hiding (map, filter)
 
 
 type Tuning = [Pitch]
@@ -82,11 +83,31 @@ buildVoicing' chordFrets sn = filter f chordFrets
     where f (_, fret) = isOnString sn fret
 
 voicingsInRange :: Tuning -> Chord -> Note -> FretRange -> [Voicing]
-voicingsInRange tuning chord note fr = mapM (buildVoicing' chordFrets) (strings tuning)
+voicingsInRange tuning chord@(Chord is) note fr = sortBy (compare `on` difficulty) $
+                                                  nub $ 
+                                                  filter (hasIntervals is) $
+                                                  map (putIntervalInBass Unison) $
+                                                  mapM (buildVoicing' chordFrets) (strings tuning)
     where chordFrets = fretsForChordInRange tuning note chord fr
 
 -- Actually check pitch later
-rootInBass :: Voicing -> Bool
-rootInBass v = fst lowest == Unison
+intervalInBass :: Interval -> Voicing -> Bool
+intervalInBass interval v = fst lowest == interval
     where lowest = minimumBy (compare `on` (stringNum . snd)) v
+
+putIntervalInBass :: Interval -> Voicing -> Voicing
+putIntervalInBass interval [] = []
+putIntervalInBass interval vcg = case (fst . head) orderedV == interval of
+         True -> orderedV
+         False -> putIntervalInBass interval (tail orderedV)
+    where orderedV = sortBy (compare `on` (stringNum . snd)) vcg
+
+hasIntervals :: S.Set Interval  -> Voicing -> Bool
+hasIntervals is v = is == (S.fromList $ map fst v)
+
+-- Make this a more robust heuristic
+difficulty :: Voicing -> Int
+difficulty voicing = abs voicingDiameter
+    where fretnums = map (fretNum . snd) voicing
+          voicingDiameter = (maximum fretnums) - (minimum fretnums)
 
