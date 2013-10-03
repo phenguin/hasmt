@@ -6,6 +6,8 @@ import Hasmt.Note
 import Hasmt.Pitch
 import Hasmt.Chord
 
+import Data.Function (on)
+import Data.List (minimumBy)
 import Control.Monad
 
 
@@ -82,4 +84,9 @@ buildVoicing' chordFrets sn = filter f chordFrets
 voicingsInRange :: Tuning -> Chord -> Note -> FretRange -> [Voicing]
 voicingsInRange tuning chord note fr = mapM (buildVoicing' chordFrets) (strings tuning)
     where chordFrets = fretsForChordInRange tuning note chord fr
+
+-- Actually check pitch later
+rootInBass :: Voicing -> Bool
+rootInBass v = fst lowest == Unison
+    where lowest = minimumBy (compare `on` (stringNum . snd)) v
 
