@@ -2,7 +2,8 @@ module Hasmt.Note (
 Note(C,B,D,E,F,G,A),
 (~=), HavingPitchClass(..), PitchClass, 
 raise, sharpen, lower, flatten, EnharmonicEquiv(..),
-pcToNote, pcToNoteWithBase, nextNat, prevNat
+pcToNote, pcToNoteWithBase, nextNat, prevNat,
+Accidental(..)
 ) where
 
 import Data.Char (toUpper)

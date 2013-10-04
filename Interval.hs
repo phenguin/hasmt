@@ -1,6 +1,7 @@
 module Hasmt.Interval (
 Interval (Unison, Second, Third, Fourth, Fifth, Sixth, Seventh),
-semitones, sharp, flat, noteAbove
+semitones, sharp, flat, noteAbove,
+intToInterval, applyAccidental
 ) where
 
 import Hasmt.Note
@@ -33,6 +34,11 @@ instance Show Interval where
 instance EnharmonicEquiv Interval where
     enharmonicEquiv i i' = semitones i == semitones i'
 
+applyAccidental :: Accidental -> Interval -> Interval
+applyAccidental Sharp i = sharp i
+applyAccidental Flat i = flat i
+applyAccidental Natural i = natural i
+
 -- Put note with potentially weird accidentals into more common form
 canonicalize :: Note -> Note
 canonicalize = pcToNote . getPitchClass
@@ -47,6 +53,16 @@ scaleSteps Sixth = 5
 scaleSteps Seventh = 6
 scaleSteps (Flattened i) = scaleSteps i
 scaleSteps (Sharpened i) = scaleSteps i
+
+intToInterval :: Int -> Interval
+intToInterval 1 = Unison 
+intToInterval 2 = Second 
+intToInterval 3 = Third 
+intToInterval 4 = Fourth 
+intToInterval 5 = Fifth 
+intToInterval 6 = Sixth 
+intToInterval 7 = Seventh 
+intToInterval n = intToInterval (n `mod` 7)
 
 semitones :: Interval -> Int
 semitones Unison = 0
@@ -82,6 +98,11 @@ sharp :: Interval -> Interval
 sharp (Flattened i) = i
 sharp i = Sharpened i
 
+natural :: Interval -> Interval
+natural (Flattened i) = natural i
+natural (Sharpened i) = natural i
+natural i = i
+
 noteAbove :: Note -> Interval -> Note
 noteAbove note interval = pcToNoteWithBase newPitchClass base
     where base = compose (take (scaleSteps interval) $ repeat nextNat) note
@@ -103,4 +124,3 @@ min6 = flat Sixth
 maj6 = Sixth
 min7 = flat Seventh
 maj7 = Seventh
-
