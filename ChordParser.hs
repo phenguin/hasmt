@@ -10,6 +10,15 @@ import Control.Monad
 import Hasmt.Note
 import Hasmt.Chord
 import Hasmt.Interval
+import Data.Either
+import Data.Maybe
+
+eitherToMaybe :: Either a b -> Maybe b
+eitherToMaybe (Left _) = Nothing
+eitherToMaybe (Right x) = Just x
+
+stringToChord :: String -> Maybe (Note, Chord)
+stringToChord s = eitherToMaybe $ parse chord "" s
 
 chord :: Parser (Note, Chord)
 chord = do
@@ -46,8 +55,14 @@ accidental = do
 
 interval :: Parser Interval
 interval = do
-    intervalS <- choice $ map (string . show) [13,12 .. 1]
-    return $ intToInterval (read intervalS)
+    maybeOne <- optionMaybe $ char '1'
+    case maybeOne of
+         Just c -> do
+             rest <- choice $ map string ["3", "2", "1", "0", ""]
+             return $ intToInterval (read (c:rest))
+         Nothing -> do
+             res <- choice $ map (string . show) [9,8 .. 1]
+             return $ intToInterval (read res)
 
 alteration :: Parser Alteration
 alteration = do

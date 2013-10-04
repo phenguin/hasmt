@@ -40,9 +40,10 @@ extensions Dominant 9 = [flat Seventh, Second]
 extensions Dominant 11 = [flat Seventh, Second, Fourth]
 extensions Dominant 13 = [Seventh, Second, Fourth, Sixth]
 
+extensions Suspended 2 = [Second]
+extensions Suspended 4 = [Fourth]
 extensions Suspended 9 = [Second]
 extensions Suspended 11 = [Fourth]
-extensions Suspended 13 = [Sixth]
 
 -- TODO: Check this.. melodic minor modes ughh
 extensions Augmented 7 = [Seventh]
