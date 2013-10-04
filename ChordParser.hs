@@ -19,12 +19,14 @@ chord = do
     mExtensionInt <- optionMaybe $ 
                     liftM read $ 
                     choice (map (string . show) [13, 11, 9, 7])
-    alts <- many alteration
+    alts <- between (char '(') (char ')') (many alteration) <|>
+            many alteration
     let extended = case mExtensionInt of
          Nothing -> c
          Just extensionInt -> extendTo cq extensionInt c
         altered = foldr applyAlteration extended alts
     return (cnote, altered)
+
 
 note :: Parser Note
 note = do
@@ -55,21 +57,24 @@ alteration = do
 
 chordQuality :: Parser (Chord, ChordQuality)
 chordQuality = do
-    q <- choice [ string "maj"
-                 , string "M"
-                 , string "min"
-                 , string "m"
-                 , string "-"
-                 , string "aug"
-                 , string "dim"
-                 , string "min"
-                 , string "sus"
-                 , string ""]
-    return $ stringToChordQuality q
+    -- TODO: Better way to do this? need lookahead
+    maybeM <- optionMaybe $ char 'm'
+    case maybeM of
+         Just c -> do
+             rest <- choice $ map string ["aj", "in", ""]
+             return $ stringToChordQuality (c:rest)
+         Nothing -> do
+             res <- choice $ map string ["M",
+                                    "-",
+                                    "aug",
+                                    "dim",
+                                    "sus",
+                                    "" ]
+             return $ stringToChordQuality res
 
 stringToChordQuality :: String -> (Chord, ChordQuality)
-stringToChordQuality s | s `elem` ["maj", "M", "m"] = (majorTriad, Major)
-                       | s `elem` ["min", "-"] = (minorTriad, Minor)
+stringToChordQuality s | s `elem` ["maj", "M"] = (majorTriad, Major)
+                       | s `elem` ["min", "-", "m"] = (minorTriad, Minor)
                        | s `elem` ["aug"] = (augTriad, Augmented)
                        | s `elem` ["dim"] = (dimTriad, Diminished)
                        | s `elem` ["sus"] = (chordFromList [Unison, Fifth], Suspended)
