@@ -20,6 +20,9 @@ eitherToMaybe (Right x) = Just x
 stringToChord :: String -> Maybe (Note, Chord)
 stringToChord s = eitherToMaybe $ parse chord "" s
 
+stringToChords :: String -> Maybe [(Note, Chord)]
+stringToChords s = eitherToMaybe $ parse chords "" s
+
 chords :: Parser [(Note, Chord)]
 chords = chord `sepBy` spaces
 
