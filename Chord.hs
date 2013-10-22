@@ -5,7 +5,7 @@ import Hasmt.Note
 import qualified Data.Set as S
 import Data.List
 
-newtype Chord = Chord { intervals :: S.Set(Interval) } deriving (Eq)
+newtype Chord = Chord { intervals :: S.Set(Interval) } deriving (Eq, Ord)
 
 type Alteration = (Interval, Accidental)
 

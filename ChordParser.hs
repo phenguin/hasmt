@@ -5,6 +5,7 @@ import Text.Parsec.String (Parser)
 import Text.Parsec.Combinator 
 import Text.Parsec.Char
 
+import Data.List (nub, sort)
 import Data.Char (toUpper)
 import Control.Monad
 import Hasmt.Note
@@ -23,8 +24,24 @@ stringToChord s = eitherToMaybe $ parse chord "" s
 stringToChords :: String -> Maybe [(Note, Chord)]
 stringToChords s = eitherToMaybe $ parse chords "" s
 
+junkStringToChords :: String -> Maybe [(Note, Chord)]
+junkStringToChords s = liftM (nub . sort) $ eitherToMaybe $ parse chordsFromJunk "" s
+
 chords :: Parser [(Note, Chord)]
 chords = chord `sepBy` spaces
+
+chordInWhitespace :: Parser (Note, Chord)
+chordInWhitespace = do
+    many1 space
+    res <- chord
+    many1 space
+    return res
+
+chordsFromJunk :: Parser [(Note, Chord)]
+chordsFromJunk = liftM catMaybes $ many chordOrAdvance
+
+chordOrAdvance :: Parser (Maybe (Note, Chord))
+chordOrAdvance = (liftM Just (try chordInWhitespace)) <|> (liftM (const Nothing) anyChar)
 
 chord :: Parser (Note, Chord)
 chord = do
