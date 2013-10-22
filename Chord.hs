@@ -52,7 +52,7 @@ extensions Augmented 11 = [flat Seventh, Second, Fourth]
 extensions Augmented 13 = [Seventh, Second, Fourth, Sixth]
 
 -- TODO: Check this too..
-extensions Diminished 7 = [flat Seventh]
+extensions Diminished 7 = [(flat . flat) Seventh]
 extensions Diminished 9 = [flat Seventh, Second]
 extensions Diminished 11 = [flat Seventh, Second, Fourth]
 extensions Diminished 13 = [flat Seventh, Second, Fourth, Sixth]

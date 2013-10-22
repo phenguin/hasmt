@@ -7,9 +7,9 @@ import Hasmt.Pitch
 import Hasmt.Chord
 
 import Data.Function (on)
-import Data.List (minimumBy, maximumBy, sortBy, nub, sort, maximum)
+import Data.List (minimumBy, maximumBy, sortBy, nub, sort, maximum, minimum)
 import Control.Monad
-import Data.Set as S hiding (map, filter)
+import Data.Set as S hiding (map, filter, difference)
 
 
 type Tuning = [Pitch]
@@ -38,6 +38,8 @@ strings tuning = map fst $ zip [0..] tuning
 pitchAtFret :: Tuning -> StringNum -> FretNum -> Pitch
 pitchAtFret tuning string fretnum = moveSemitones fretnum openPitch
     where openPitch = tuning !! string
+
+pitchAtFret' tuning (Fret fret strnum) = pitchAtFret tuning fret strnum
 
 noteAtFret :: Tuning -> StringNum -> FretNum -> Note
 noteAtFret tuning stringnum = getPitchNote . (pitchAtFret tuning stringnum)
@@ -110,4 +112,32 @@ difficulty :: Voicing -> Int
 difficulty voicing = abs voicingDiameter
     where fretnums = map (fretNum . snd) voicing
           voicingDiameter = (maximum fretnums) - (minimum fretnums)
+
+-- normalizeVoicing :: Tuning -> Voicing -> [(Fret, Maybe Interval)]
+-- normalizeVoicing tuning voicing = map f stringNums
+--     where stringNums = strings tuning
+--           f i = case filter (noteOnString i) voicing of
+--                [] -> None
+--                pattern -> expression
+--           noteOnString i (intval, (Fret strnum fnum)) = strnum == i
+
+voicingFretRange :: Voicing -> FretRange
+voicingFretRange v = FretRange minFretRelaxed maxFretRelaxed
+    where voicingFrets = map (fretNum . snd) v
+          minFret = minimum voicingFrets
+          maxFret = maximum voicingFrets
+          minFretRelaxed = max (minFret - 2) 0
+          maxFretRelaxed = maxFret + 2
+
+closestChordToVoicing :: Tuning -> Voicing -> Note -> Chord -> Voicing
+closestChordToVoicing tuning v note chord = minimumBy (compare `on` voiceDistance tuning v) candidates
+    where candidates = voicingsInRange tuning chord note (voicingFretRange v)
+
+-- TODO: Implement this better later..
+voiceDistance :: Tuning -> Voicing -> Voicing -> Int
+voiceDistance tuning v v' = sum $ map distanceMoved vPitches
+    where vPitches = map (pitchAtFret' tuning . snd) v
+          vPitches' = map (pitchAtFret' tuning . snd) v'
+          distanceMoved pitch = minimum $ map (difference pitch) vPitches'
+
 
