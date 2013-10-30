@@ -33,7 +33,7 @@ data FretRange = FretRange { lowerBound :: FretNum, upperBound :: FretNum } deri
                     (Eq, Ord, Show, Read)
 
 strings :: Tuning -> [StringNum]
-strings tuning = map fst $ zip [0..] tuning
+strings = zipWith (curry fst) [0..] 
 
 pitchAtFret :: Tuning -> StringNum -> FretNum -> Pitch
 pitchAtFret tuning string fretnum = moveSemitones fretnum openPitch
@@ -42,7 +42,7 @@ pitchAtFret tuning string fretnum = moveSemitones fretnum openPitch
 pitchAtFret' tuning (Fret fret strnum) = pitchAtFret tuning fret strnum
 
 noteAtFret :: Tuning -> StringNum -> FretNum -> Note
-noteAtFret tuning stringnum = getPitchNote . (pitchAtFret tuning stringnum)
+noteAtFret tuning stringnum = getPitchNote . pitchAtFret tuning stringnum
 
 fretsWithNoteOnString :: Tuning -> StringNum -> Note -> [FretNum]
 fretsWithNoteOnString tuning stringnum note = filter f [0..maxFret]
@@ -53,13 +53,13 @@ fretsWithPitchOnString tuning stringnum pitch = filter f [0..maxFret]
     where f fretnum = pitchAtFret tuning stringnum fretnum == pitch
 
 fretsWithPitch :: Tuning -> Pitch -> [Fret]
-fretsWithPitch tuning pitch = map g $ concat $ map f (strings tuning)
+fretsWithPitch tuning pitch = map g $ concatMap f (strings tuning)
      where f stringNum = map (\x -> (stringNum, x)) $ 
                              fretsWithPitchOnString tuning stringNum pitch
            g (stringNum, fretNum) = Fret stringNum fretNum
 
 fretsWithNote :: Tuning -> Note -> [Fret]
-fretsWithNote tuning note = map g $ concat $ map f (strings tuning)
+fretsWithNote tuning note = map g $ concatMap f (strings tuning)
      where f stringNum = map (\x -> (stringNum, x)) $ 
                              fretsWithNoteOnString tuning stringNum note
            g (stringNum, fretNum) = Fret stringNum fretNum
@@ -111,7 +111,7 @@ hasIntervals is v = is == (S.fromList $ map fst v)
 difficulty :: Voicing -> Int
 difficulty voicing = abs voicingDiameter
     where fretnums = map (fretNum . snd) voicing
-          voicingDiameter = (maximum fretnums) - (minimum fretnums)
+          voicingDiameter = maximum fretnums - minimum fretnums
 
 -- normalizeVoicing :: Tuning -> Voicing -> [(Fret, Maybe Interval)]
 -- normalizeVoicing tuning voicing = map f stringNums

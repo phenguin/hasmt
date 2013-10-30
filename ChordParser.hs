@@ -14,18 +14,20 @@ import Hasmt.Interval
 import Data.Either
 import Data.Maybe
 
+parseMaybe parser s = eitherToMaybe $ parse parser "" s
+
 eitherToMaybe :: Either a b -> Maybe b
 eitherToMaybe (Left _) = Nothing
 eitherToMaybe (Right x) = Just x
 
 stringToChord :: String -> Maybe (Note, Chord)
-stringToChord s = eitherToMaybe $ parse chord "" s
+stringToChord = parseMaybe chord
 
 stringToChords :: String -> Maybe [(Note, Chord)]
-stringToChords s = eitherToMaybe $ parse chords "" s
+stringToChords = parseMaybe chords
 
 junkStringToChords :: String -> Maybe [(Note, Chord)]
-junkStringToChords s = liftM (nub . sort) $ eitherToMaybe $ parse chordsFromJunk "" s
+junkStringToChords s = liftM (nub . sort) $ parseMaybe chordsFromJunk s
 
 chords :: Parser [(Note, Chord)]
 chords = chord `sepBy` spaces
@@ -37,11 +39,20 @@ chordInWhitespace = do
     many1 space
     return res
 
-chordsFromJunk :: Parser [(Note, Chord)]
-chordsFromJunk = liftM catMaybes $ many chordOrAdvance
+chordsFromJunk = liftM catMaybes $ many (parseOrAdvance chord)
+labeledChordsFromJunk = liftM catMaybes $ many (parseOrAdvance labeledChord)
 
-chordOrAdvance :: Parser (Maybe (Note, Chord))
-chordOrAdvance = (liftM Just (try chordInWhitespace)) <|> (liftM (const Nothing) anyChar)
+parseOrAdvance :: Parser a -> Parser (Maybe a)
+parseOrAdvance p = liftM Just (try p) <|> liftM (const Nothing) anyChar
+
+labeledChord ::  Parser ((Note, Chord), String)
+labeledChord = withParsedString chord
+
+withParsedString :: Parser a -> Parser (a, String)
+withParsedString p = do
+    parsed <- lookAhead p
+    label <- many1 anyChar
+    return (parsed, label)
 
 chord :: Parser (Note, Chord)
 chord = do

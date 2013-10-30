@@ -5,7 +5,7 @@ import Hasmt.Note
 import qualified Data.Set as S
 import Data.List
 
-newtype Chord = Chord { intervals :: S.Set(Interval) } deriving (Eq, Ord)
+newtype Chord = Chord { intervals :: S.Set Interval } deriving (Eq, Ord)
 
 type Alteration = (Interval, Accidental)
 
@@ -16,7 +16,6 @@ instance Show Chord where
     show (Chord intervalSet) = "<Chord:(" ++ (unwords $ map show $ S.toList intervalSet) ++ ")>"
 
 -- Construction
-chordFromList :: [Interval] -> Chord
 chordFromList = Chord . S.fromList
 
 -- Ghetto.. fix this later
