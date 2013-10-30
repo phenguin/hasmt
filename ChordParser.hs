@@ -32,6 +32,13 @@ junkStringToChords s = liftM (nub . sort) $ parseMaybe chordsFromJunk s
 chords :: Parser [(Note, Chord)]
 chords = chord `sepBy` spaces
 
+labeledChordInWhitespace :: Parser ((Note, Chord), String)
+labeledChordInWhitespace = do
+    many space
+    res <- labeledChord
+    void (many1 space) <|> eof
+    return res
+
 chordInWhitespace :: Parser (Note, Chord)
 chordInWhitespace = do
     many1 space
@@ -40,7 +47,7 @@ chordInWhitespace = do
     return res
 
 chordsFromJunk = liftM catMaybes $ many (parseOrAdvance chord)
-labeledChordsFromJunk = liftM catMaybes $ many (parseOrAdvance labeledChord)
+labeledChordsFromJunk = liftM catMaybes $ many (parseOrAdvance labeledChordInWhitespace)
 
 parseOrAdvance :: Parser a -> Parser (Maybe a)
 parseOrAdvance p = liftM Just (try p) <|> liftM (const Nothing) anyChar
@@ -50,8 +57,9 @@ labeledChord = withParsedString chord
 
 withParsedString :: Parser a -> Parser (a, String)
 withParsedString p = do
-    parsed <- lookAhead p
-    label <- many1 anyChar
+    startPos <- liftM sourceColumn getPosition
+    (parsed, endPos) <- lookAhead (liftM2 (,) p (liftM sourceColumn getPosition))
+    label <- forM [1..(endPos - startPos)] (const anyChar)
     return (parsed, label)
 
 chord :: Parser (Note, Chord)
