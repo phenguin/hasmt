@@ -26,34 +26,31 @@ stringToChord = parseMaybe chord
 stringToChords :: String -> Maybe [(Note, Chord)]
 stringToChords = parseMaybe chords
 
-junkStringToChords :: String -> Maybe [(Note, Chord)]
-junkStringToChords s = liftM (nub . sort) $ parseMaybe chordsFromJunk s
+junkStringToChords :: String -> Maybe [((Note, Chord), String)]
+junkStringToChords s = liftM (nub . sort . map capitalizeSnd) $ parseMaybe labeledChordsFromJunk s
+    where capitalizeSnd (x, []) = (x, [])
+          capitalizeSnd (x, y:ys) = (x, toUpper y:ys)
 
-chords :: Parser [(Note, Chord)]
-chords = chord `sepBy` spaces
+chordsFromJunk = fromJunk chord
+labeledChordsFromJunk = fromJunk labeledChord
 
-labeledChordInWhitespace :: Parser ((Note, Chord), String)
-labeledChordInWhitespace = do
+fromJunk p = liftM catMaybes $ many ((parseOrAdvance . inWhitespace) p)
+
+inWhitespace :: Parser a -> Parser a
+inWhitespace p = do
     many space
-    res <- labeledChord
+    res <- p
     void (many1 space) <|> eof
     return res
-
-chordInWhitespace :: Parser (Note, Chord)
-chordInWhitespace = do
-    many1 space
-    res <- chord
-    many1 space
-    return res
-
-chordsFromJunk = liftM catMaybes $ many (parseOrAdvance chord)
-labeledChordsFromJunk = liftM catMaybes $ many (parseOrAdvance labeledChordInWhitespace)
 
 parseOrAdvance :: Parser a -> Parser (Maybe a)
 parseOrAdvance p = liftM Just (try p) <|> liftM (const Nothing) anyChar
 
 labeledChord ::  Parser ((Note, Chord), String)
 labeledChord = withParsedString chord
+
+chords :: Parser [(Note, Chord)]
+chords = chord `sepBy` spaces
 
 withParsedString :: Parser a -> Parser (a, String)
 withParsedString p = do
