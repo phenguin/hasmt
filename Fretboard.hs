@@ -9,7 +9,8 @@ import Hasmt.Chord
 import Data.Function (on)
 import Data.List (minimumBy, maximumBy, sortBy, nub, sort, maximum, minimum)
 import Control.Monad
-import Data.Set as S hiding (map, filter, difference)
+import Data.Maybe (catMaybes)
+import qualified Data.Set as S hiding (filter, difference)
 
 
 type Tuning = [Pitch]
@@ -80,17 +81,27 @@ inFretRange (FretRange low high) (Fret _ fretNum) = low <= fretNum && fretNum <=
 isOnString :: StringNum -> Fret -> Bool
 isOnString sn (Fret sn' _) = sn == sn'
 
-buildVoicing' :: [(Interval, Fret)] -> StringNum -> [(Interval, Fret)]
-buildVoicing' chordFrets sn = filter f chordFrets
+buildVoicing' :: [(Interval, Fret)] -> StringNum -> [Maybe (Interval, Fret)]
+buildVoicing' chordFrets sn = Nothing : (map Just $ filter f chordFrets)
     where f (_, fret) = isOnString sn fret
 
 voicingsInRange :: Tuning -> Chord -> Note -> FretRange -> [Voicing]
 voicingsInRange tuning chord@(Chord is) note fr = sortBy (compare `on` difficulty) $
                                                   nub $ 
                                                   filter (hasIntervals is) $
-                                                  map (putIntervalInBass Unison) $
+                                                  map (putIntervalInBass Unison . catMaybes) $
                                                   mapM (buildVoicing' chordFrets) (strings tuning)
     where chordFrets = fretsForChordInRange tuning note chord fr
+
+voicingsNearFret :: FretNum -> Tuning -> Chord -> Note -> [Voicing]
+voicingsNearFret n tuning chord@(Chord is) note = sortBy (compare `on` sortKey) candidates
+    where candidates = voicingsInRange tuning chord note fr
+          fr = FretRange low high
+          sortKey x = (difficulty x, distanceFromFret n x)
+          halfRange = 4
+          (low, high) = case n < halfRange of
+               True -> (0, 2 * halfRange - n)
+               False -> (n - halfRange, n + halfRange)
 
 -- Actually check pitch later
 intervalInBass :: Interval -> Voicing -> Bool
@@ -113,14 +124,6 @@ difficulty voicing = abs voicingDiameter
     where fretnums = map (fretNum . snd) voicing
           voicingDiameter = maximum fretnums - minimum fretnums
 
--- normalizeVoicing :: Tuning -> Voicing -> [(Fret, Maybe Interval)]
--- normalizeVoicing tuning voicing = map f stringNums
---     where stringNums = strings tuning
---           f i = case filter (noteOnString i) voicing of
---                [] -> None
---                pattern -> expression
---           noteOnString i (intval, (Fret strnum fnum)) = strnum == i
-
 voicingFretRange :: Voicing -> FretRange
 voicingFretRange v = FretRange minFretRelaxed maxFretRelaxed
     where voicingFrets = map (fretNum . snd) v
@@ -128,6 +131,9 @@ voicingFretRange v = FretRange minFretRelaxed maxFretRelaxed
           maxFret = maximum voicingFrets
           minFretRelaxed = max (minFret - 2) 0
           maxFretRelaxed = maxFret + 2
+
+distanceFromFret :: FretNum -> Voicing -> Int
+distanceFromFret n voicing = sum $ map (abs . subtract n . fretNum . snd) voicing
 
 closestChordToVoicing :: Tuning -> Voicing -> Note -> Chord -> Voicing
 closestChordToVoicing tuning v note chord = minimumBy (compare `on` voiceDistance tuning v) candidates
